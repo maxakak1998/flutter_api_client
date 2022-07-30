@@ -1,4 +1,4 @@
-# super_generic_api_client
+# flutter_generic_api_client
 
 A new Flutter project.
 
