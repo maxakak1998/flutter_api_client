@@ -6,14 +6,10 @@ abstract class BaseAPIResponseWrapper<R, E> {
   R? originalResponse;
   E? decodedData;
 
-  int? status;
-  String? statusMessage;
   bool hasError = false;
   BaseAPIResponseDataTransformer dataTransformer;
 
   BaseAPIResponseWrapper({this.decodedData,
-    this.statusMessage,
-    this.status,
     this.hasError = false,
     this.originalResponse,
     required this.dataTransformer});
@@ -32,8 +28,6 @@ class APIResponse<T> extends BaseAPIResponseWrapper<Response, T> {
   }) : super(
       originalResponse: response,
       hasError: hasError,
-      status: status,
-      statusMessage: statusMessage,
       decodedData: decodedData,
       dataTransformer:
       dataTransformer ?? APIResponseDataTransformer<T>());
@@ -51,14 +45,10 @@ class APIListResponse<T> extends BaseAPIResponseWrapper<Response, T> {
     this.decodedList,
     T? decodedData,
     BaseAPIResponseDataTransformer? dataTransformer,
-    int? status,
-    String? statusMessage,
     bool hasError = false,
   }) : super(
       originalResponse: response,
       hasError: hasError,
-      status: status,
-      statusMessage: statusMessage,
       decodedData: decodedData,
       dataTransformer:
       dataTransformer ?? APIListResponseDataTransformer<T>());
@@ -81,8 +71,6 @@ class ErrorResponse<T> extends BaseAPIResponseWrapper<Response, T> {
   }) : super(
       originalResponse: response,
       hasError: true,
-      status: status,
-      statusMessage: statusMessage,
       decodedData: decodedData,
       dataTransformer:
       dataTransformer ?? APIResponseDataTransformer<T>());

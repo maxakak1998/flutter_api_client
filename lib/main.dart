@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:super_generic_api_client/api_services/base_data_transformer.dart';
 import 'package:super_generic_api_client/api_services/decoder.dart';
 
 import 'api_services/api_client.dart';
@@ -17,6 +18,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      restorationScopeId: 'root',
       title: 'Flutter Demo',
       theme: ThemeData(
         // This is the theme of your application.
@@ -141,21 +143,6 @@ class _MyHomePageState extends State<MyHomePage> {
                           route: APIRoute(apiType: APIType.testPost),
                           params: {"data": "post"},
                           create: (response) =>
-                              APIResponse<Map<String,dynamic>>(
-                                  response: response),
-                        )
-                            .then((response) {
-                          setState(() {
-                            _text = response.decodedData?.toString();
-                          });
-                        });
-                      }),
-                      _buildButton("Api wrapper wih basic types: Delete", () {
-                        apiClient
-                            .request(
-                          route: APIRoute(apiType: APIType.testDelete),
-                          params: {"data": "post"},
-                          create: (response) =>
                               APIResponse<Map<String, dynamic>>(
                                   response: response),
                         )
@@ -173,6 +160,23 @@ class _MyHomePageState extends State<MyHomePage> {
                           create: (response) =>
                               APIResponse<Map<String, dynamic>>(
                                   response: response),
+                        )
+                            .then((response) {
+                          setState(() {
+                            _text = response.decodedData?.toString();
+                          });
+                        });
+                      }),
+                      _buildButton("Api wrapper wih basic types: Delete", () {
+                        apiClient
+                            .request(
+                          route: APIRoute(apiType: APIType.testDelete),
+                          params: {"data": "post"},
+                          body: {"value": 1},
+                          create: (response) => APIResponse(
+                              response: response,
+                              dataTransformer:
+                                  APIResponseDataTransformer(rootName: "data")),
                         )
                             .then((response) {
                           setState(() {
@@ -230,7 +234,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           });
                         });
                       }),
-                      _buildButton("API Error", () async{
+                      _buildButton("API Error", () async {
                         try {
                           await apiClient.request(
                             route: APIRoute(apiType: APIType.testError),
@@ -240,7 +244,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           );
                         } on ErrorResponse catch (e) {
                           setState(() {
-                            _text = e.statusMessage;
+                            _text =
+                                e.originalResponse?.statusMessage ?? "Unknown";
                           });
                         }
                       }),
