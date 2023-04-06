@@ -1,45 +1,34 @@
 import 'package:dio/dio.dart';
 import 'package:super_generic_api_client/api_services/decoder.dart';
-
 import 'api_response.dart';
+
+typedef RootKeyExtractor = String Function(Map<String, dynamic>? data);
 
 ///R = Raw type you get from response ( Ex: Using DIO is Response object)
 ///E = Formatted response type ( Ex: Common data format you want to get is Map<String,dynamic>
 abstract class BaseAPIResponseDataTransformer<R, E, D> {
-  String rootKey;
+  RootKeyExtractor rootKeyExtractor;
   List<int> succeedStatuses;
 
   E transform(R response, D? genericObject);
 
   bool isSucceed(int? statusCode);
 
-  BaseAPIResponseDataTransformer(this.rootKey,
+  BaseAPIResponseDataTransformer(this.rootKeyExtractor,
       {this.succeedStatuses = const [200, 201, 202, 203, 204]});
 }
 
-// class BasicDioTransformer extends BaseAPIResponseDataTransformer<Response,
-//     Map<String, dynamic>, dynamic> {
-//   @override
-//   Map<String, dynamic> transform(Response response, genericObject) {
-//     return {
-//       BaseAPIResponseDataTransformer.rootAPIDataFormat: response.data,
-//       BaseAPIResponseDataTransformer.rootAPIStatusFormat: response.statusCode,
-//       BaseAPIResponseDataTransformer.rootAPIStatusMessageFormat:
-//           response.statusMessage
-//     };
-//   }
-// }
-
 class APIResponseDataTransformer<T> extends BaseAPIResponseDataTransformer<
     Response, BaseAPIResponseWrapper<Response, T>, T> {
-  APIResponseDataTransformer({String rootName = "args"}) : super(rootName);
+  APIResponseDataTransformer({RootKeyExtractor? rootKeyExtractor})
+      : super(rootKeyExtractor ?? (_) => "args");
 
   @override
   BaseAPIResponseWrapper<Response, T> transform(
       Response response, T? genericObject) {
     dynamic data = response.data;
     if (data is Map) {
-      data = data[rootKey];
+      data = data[rootKeyExtractor(response.data)];
     }
 
     T? _object;
@@ -66,7 +55,8 @@ class APIResponseDataTransformer<T> extends BaseAPIResponseDataTransformer<
 
 class APIListResponseDataTransformer<T> extends BaseAPIResponseDataTransformer<
     Response, BaseAPIResponseWrapper<Response, T>, T> {
-  APIListResponseDataTransformer({String rootKey = "json"}) : super(rootKey);
+  APIListResponseDataTransformer({RootKeyExtractor? rootKeyExtractor})
+      : super(rootKeyExtractor ?? (_) => "json");
 
   @override
   BaseAPIResponseWrapper<Response, T> transform(
@@ -74,7 +64,7 @@ class APIListResponseDataTransformer<T> extends BaseAPIResponseDataTransformer<
     final data = response.data;
 
     List<T> decodedList = [];
-    final rawList = data[rootKey];
+    final rawList = data[rootKeyExtractor(response.data)];
     if (rawList is List) {
       if (genericObject is Decoder) {
         for (final e in rawList) {

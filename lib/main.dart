@@ -175,8 +175,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           body: {"value": 1},
                           create: (response) => APIResponse(
                               response: response,
-                              dataTransformer:
-                                  APIResponseDataTransformer(rootName: "data")),
+                              dataTransformer: APIResponseDataTransformer(
+                                  rootKeyExtractor: (data) => "data")),
                         )
                             .then((response) {
                           setState(() {
